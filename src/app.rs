@@ -1,8 +1,8 @@
+use crate::{command::command::Command, state::{app_state::AppState, reducer::reduce}, ui::central_panel};
 use egui::{Color32, FontData, FontDefinitions, FontFamily};
 use log::info;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use crate::{command::command::Command, ui::central_panel};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -18,7 +18,8 @@ pub struct NoteMeApp {
 
     #[serde(skip)] // This how you opt-out of serialization of a field
     value: f32,
-    command: Vec<Command>
+    command: Vec<Command>,
+    state: AppState,
 }
 
 impl Default for NoteMeApp {
@@ -68,7 +69,8 @@ impl Default for NoteMeApp {
             // Example stuff:
             label: "Hello World!".to_owned(),
             value: 2.7,
-            command: Vec::new()
+            command: Vec::new(),
+            state: AppState { value: 2.7 },
         }
     }
 }
@@ -169,7 +171,11 @@ impl eframe::App for NoteMeApp {
                 })
             });
 
-        central_panel::show(ctx, &mut self.command);
+        central_panel::show(ctx, &mut self.command, self.state);
+
+        for cmd in self.command.drain(..) {
+            reduce(&mut self.state, cmd);
+        }
     }
 }
 
@@ -226,4 +232,3 @@ struct ButtonSetting {
     text: String,
     icon: AppIcon,
 }
-
