@@ -18,9 +18,9 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
     eframe::run_native(
-        "eframe template",
+        "Note_Me_Desktop",
         native_options,
-        Box::new(|cc| Ok(Box::new(notion_clone::TemplateApp::new(cc)))),
+        Box::new(|cc| Ok(Box::new(notion_clone::NoteMeApp::new(cc)))),
     )
 }
 
@@ -50,7 +50,7 @@ fn main() {
             .start(
                 canvas,
                 web_options,
-                Box::new(|cc| Ok(Box::new(notion_clone::TemplateApp::new(cc)))),
+                Box::new(|cc| Ok(Box::new(notion_clone::NoteMeApp::new(cc)))),
             )
             .await;
 
