@@ -1,7 +1,4 @@
-use crate::{
-    command::command::Command,
-    state::app_state::{self, AppState},
-};
+use crate::{command::command::Command, state::app_state::AppState};
 
 pub fn show(ctx: &egui::Context, command: &mut Vec<Command>, state: AppState) {
     egui::CentralPanel::default().show(ctx, |ui| {

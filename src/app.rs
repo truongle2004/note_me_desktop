@@ -1,76 +1,72 @@
-use crate::{command::command::Command, state::{app_state::AppState, reducer::reduce}, ui::central_panel};
-use egui::{Color32, FontData, FontDefinitions, FontFamily};
-use log::info;
-use serde::{Deserialize, Serialize};
+use crate::{
+    command::command::Command,
+    shared::icon::AppIcon,
+    state::{
+        app_state::AppState, button_setting::ButtonSetting, reducer::reduce,
+        side_panel_state::SidePanelState,
+    },
+    ui::{central_panel, side_panel},
+};
+use eframe::glow::ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_CONTROL_SHADER;
+use egui::{FontData, FontDefinitions, FontFamily};
 use std::sync::Arc;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct NoteMeApp {
-    label: String,
-    selected: Option<usize>,
-    #[serde(skip)]
-    item3: Vec<ButtonSetting>,
-
-    #[serde(skip)]
-    item4: Vec<ButtonSetting>,
-
-    #[serde(skip)] // This how you opt-out of serialization of a field
-    value: f32,
     command: Vec<Command>,
-    state: AppState,
+    app_state: AppState,
+    side_panel_state: SidePanelState,
 }
 
 impl Default for NoteMeApp {
     fn default() -> Self {
         Self {
-            item3: vec![
-                {
-                    ButtonSetting {
-                        text: "Search".to_string(),
-                        icon: AppIcon::Search,
-                    }
-                },
-                {
-                    ButtonSetting {
-                        text: "Home".to_string(),
-                        icon: AppIcon::Home,
-                    }
-                },
-                {
-                    ButtonSetting {
-                        text: "Inbox".to_string(),
-                        icon: AppIcon::Inbox,
-                    }
-                },
-            ],
-            item4: vec![
-                {
-                    ButtonSetting {
-                        text: "Settings".to_string(),
-                        icon: AppIcon::Settings,
-                    }
-                },
-                {
-                    ButtonSetting {
-                        text: "Marketplace".to_string(),
-                        icon: AppIcon::Marketplace,
-                    }
-                },
-                {
-                    ButtonSetting {
-                        text: "Trash".to_string(),
-                        icon: AppIcon::Trash,
-                    }
-                },
-            ],
-            selected: None,
-            // Example stuff:
-            label: "Hello World!".to_owned(),
-            value: 2.7,
             command: Vec::new(),
-            state: AppState { value: 2.7 },
+            app_state: AppState { value: 2.7 },
+            side_panel_state: SidePanelState {
+                item3: vec![
+                    {
+                        ButtonSetting {
+                            text: "Search".to_string(),
+                            icon: AppIcon::Search,
+                        }
+                    },
+                    {
+                        ButtonSetting {
+                            text: "Home".to_string(),
+                            icon: AppIcon::Home,
+                        }
+                    },
+                    {
+                        ButtonSetting {
+                            text: "Inbox".to_string(),
+                            icon: AppIcon::Inbox,
+                        }
+                    },
+                ],
+                item4: vec![
+                    {
+                        ButtonSetting {
+                            text: "Settings".to_string(),
+                            icon: AppIcon::Settings,
+                        }
+                    },
+                    {
+                        ButtonSetting {
+                            text: "Marketplace".to_string(),
+                            icon: AppIcon::Marketplace,
+                        }
+                    },
+                    {
+                        ButtonSetting {
+                            text: "Trash".to_string(),
+                            icon: AppIcon::Trash,
+                        }
+                    },
+                ],
+            },
         }
     }
 }
@@ -138,97 +134,12 @@ impl eframe::App for NoteMeApp {
             });
         });
 
-        egui::SidePanel::left("my_left_panel")
-            .resizable(true)
-            .show(ctx, |ui| {
-                ui.take_available_space();
-                ui.label("Hello World!");
+        central_panel::show(ctx, &mut self.command, self.app_state.to_owned());
 
-                ui.vertical(|ui| {
-                    for (_, item) in self.item3.iter().enumerate() {
-                        if fancy_button(
-                            ui,
-                            format!("{:#} {:#}", icon(item.icon.clone()), item.text).as_str(),
-                        )
-                        .clicked()
-                        {
-                            info!("clicked")
-                        }
-                    }
-
-                    ui.separator();
-
-                    for (_, item) in self.item4.iter().enumerate() {
-                        if fancy_button(
-                            ui,
-                            format!("{:#} {:#}", icon(item.icon.clone()), item.text).as_str(),
-                        )
-                        .clicked()
-                        {
-                            info!("clicked");
-                        }
-                    }
-                })
-            });
-
-        central_panel::show(ctx, &mut self.command, self.state);
+        side_panel::show(ctx, &mut self.command, self.side_panel_state.to_owned());
 
         for cmd in self.command.drain(..) {
-            reduce(&mut self.state, cmd);
+            reduce(&mut self.app_state, cmd);
         }
     }
-}
-
-fn fancy_button(ui: &mut egui::Ui, text: &str) -> egui::Response {
-    let desired_size = egui::vec2(120.0, 40.0);
-    let (rect, response) = ui.allocate_exact_size(desired_size, egui::Sense::click());
-
-    if ui.is_rect_visible(rect) {
-        let visuals = ui.style().interact(&response);
-
-        // let bg_color = if response.hovered() {
-        //     egui::Color32::from_rgb(80, 160, 240)
-        // } else {
-        //     egui::Color32::from_rgb(60, 120, 200)
-        // };
-
-        ui.painter().rect_filled(rect, 10.0, Color32::TRANSPARENT);
-
-        ui.painter().text(
-            rect.left_center(),
-            egui::Align2::LEFT_CENTER,
-            text,
-            egui::TextStyle::Button.resolve(ui.style()),
-            visuals.text_color(),
-        );
-    }
-
-    response
-}
-
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
-pub enum AppIcon {
-    Search,
-    Home,
-    Inbox,
-    Settings,
-    Marketplace,
-    Trash,
-}
-
-pub fn icon(icon: AppIcon) -> &'static str {
-    match icon {
-        AppIcon::Search => "󰍉",      // nf-md-magnify
-        AppIcon::Home => "󰋜",        // nf-md-home
-        AppIcon::Inbox => "󰮍",       // nf-md-inbox
-        AppIcon::Marketplace => "󰏓", // nf-md-store
-        AppIcon::Settings => "󰒓",    // nf-md-cog
-        AppIcon::Trash => "󰩺",       // nf-md-trash_can
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct ButtonSetting {
-    text: String,
-    icon: AppIcon,
 }
