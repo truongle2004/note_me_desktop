@@ -3,6 +3,7 @@ use log::info;
 use crate::{command::command::Command, components::button, state::app_state::AppState};
 
 pub fn show(ctx: &egui::Context, command: &mut Vec<Command>, state: AppState) {
+    println!("test");
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.label(state.value.to_string());
         if button::create(ui, "Increase").clicked() {
