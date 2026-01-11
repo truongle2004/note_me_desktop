@@ -5,13 +5,10 @@ use crate::{
 };
 
 // FIXME
-pub fn show(ctx: &egui::Context, _: &mut Vec<Command>, state: SidePanelState) {
+pub fn show(ctx: &egui::Context, _command: &mut Vec<Command>, state: SidePanelState) {
     egui::SidePanel::left("my_left_panel")
         .resizable(true)
         .show(ctx, |ui| {
-            ui.take_available_space();
-            ui.label("Hello World!");
-
             ui.vertical(|ui| {
                 for (_, item) in state.item3.clone().iter().enumerate() {
                     if components::button::create(

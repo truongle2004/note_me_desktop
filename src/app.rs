@@ -1,14 +1,11 @@
 use crate::{
-    command::command::Command,
-    shared::icon::AppIcon,
-    state::{
-        app_state::AppState, button_setting::ButtonSetting, reducer::reduce,
+    command::command::Command, shared::icon::AppIcon, state::{
+        app_state::AppState,  reducer::reduce,
         side_panel_state::SidePanelState,
-    },
-    ui::{central_panel, side_panel},
+    }, types::button_setting::ButtonSetting, ui::{central_panel, side_panel}
 };
-use eframe::glow::ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_CONTROL_SHADER;
 use egui::{FontData, FontDefinitions, FontFamily};
+use log::info;
 use std::sync::Arc;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -16,7 +13,10 @@ use std::sync::Arc;
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct NoteMeApp {
     command: Vec<Command>,
+    #[serde(skip)]
     app_state: AppState,
+
+    #[serde(skip)]
     side_panel_state: SidePanelState,
 }
 
@@ -134,9 +134,9 @@ impl eframe::App for NoteMeApp {
             });
         });
 
-        central_panel::show(ctx, &mut self.command, self.app_state.to_owned());
-
         side_panel::show(ctx, &mut self.command, self.side_panel_state.to_owned());
+
+        central_panel::show(ctx, &mut self.command, self.app_state.to_owned());
 
         for cmd in self.command.drain(..) {
             reduce(&mut self.app_state, cmd);

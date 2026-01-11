@@ -1,13 +1,15 @@
-use crate::{command::command::Command, state::app_state::AppState};
+use log::info;
+
+use crate::{command::command::Command, components::button, state::app_state::AppState};
 
 pub fn show(ctx: &egui::Context, command: &mut Vec<Command>, state: AppState) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.label(state.value.to_string());
-        // The central panel the region left after adding TopPanel's and SidePanel's
-        if ui.button("Increment").clicked() {
+        if button::create(ui, "Increase").clicked() {
             command.push(Command::Increment);
         }
-        if ui.button("Decrease").clicked() {
+
+        if button::create(ui, "Decrease").clicked() {
             command.push(Command::Decrement);
         }
         ui.separator();
